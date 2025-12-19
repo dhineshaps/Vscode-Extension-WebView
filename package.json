@@ -1,0 +1,41 @@
+{
+  "name": "helloworld",
+  "displayName": "HelloWorld",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.106.0"
+  },
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "helloworld.helloWorld",
+        "title": "Hello World"
+      },
+       {
+        "command": "fet.askQuestion",
+        "category": "fetquest",
+        "title": "Fet Askquestion"
+      },
+      {
+        "command": "fetquest.greetings",
+        "category": "fetquest",
+        "title": "Fet Greetings"
+      },
+      {
+        "command": "fetquest.hellopanel",
+        "category": "fetquest",
+        "title": "Hello Panel"
+      }
+    ]
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^25.0.3",
+    "@types/vscode": "^1.107.0"
+  }
+}
