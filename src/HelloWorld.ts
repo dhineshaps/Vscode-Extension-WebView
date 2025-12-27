@@ -161,22 +161,24 @@ export class HelloWorldPanel {
 					Use a content security policy to only allow loading images from https or from our extension directory,
 					and only allow scripts that have a specific nonce.
         -->
-        <meta http-equiv="Content-Security-Policy" content="img-src https: data:; style-src 'unsafe-inline' ${
-      webview.cspSource
-    }; script-src 'nonce-${nonce}';">
+          <meta http-equiv="Content-Security-Policy"
+      content="
+        img-src https: data:;
+        style-src 'unsafe-inline' ${webview.cspSource};
+        script-src 'nonce-${nonce}' ${webview.cspSource};
+      ">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<link href="${stylesResetUri}" rel="stylesheet">
 		<link href="${stylesMainUri}" rel="stylesheet">
-        <link href="" rel="stylesheet">
-        <script nonce="${nonce}">
-        </script>
+    <link href="" rel="stylesheet">
 			</head>
              <body>
               <h1>Hello World</h1>
               <input />
-              <button>hello</button>
+              <button id="button">hello</button>
+
+              <script src="${scriptUri}" nonce="${nonce}" defer> </script>
 			</body>
-      <script src="${scriptUri}" nonce="${nonce}">
 			</html>`;
   }
 
