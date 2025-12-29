@@ -3,9 +3,11 @@ import { HelloWorldPanel } from './HelloWorld';
 import { ExtensionContext, StatusBarAlignment, StatusBarItem, window, workspace } from 'vscode';
 import { basename } from 'path';
 import * as child_process from 'child_process';
-import { cwd } from 'process';
+import { cwd, stdout } from 'process';
+import { promises } from 'dns';
 
 var path = require("path");
+
 
 //https://code.visualstudio.com/api/references/vscode-api
 
@@ -65,7 +67,19 @@ export function activate(context: vscode.ExtensionContext) {
 
 	}))
 
+  context.subscriptions.push(
+  vscode.commands.registerCommand("fetquest.picktest", async () => {
 
+    const result = await vscode.window.showQuickPick(
+      ['one', 'two', 'three'],
+      { placeHolder: 'Select one' }
+    );
+
+    if (result) {
+      vscode.window.showInformationMessage(`You chose ${result}`);
+    }
+  })
+);
 }
 
 
@@ -75,21 +89,19 @@ export function deactivate() {}
 function getActiveFilePath(): string | null {
 
 	let gitDirExits : object
+	let branchesfunc : Promise<any>
 
 	let path : string
     let uri : vscode.Uri
 	const editor: any = window.activeTextEditor;
 
+	var branches : string []
+    //var branchesnew
+
 	if (!editor) {
 		return null;
 	}
 
-	// const path1 = editor.document.uri
-
-	// if(path1){
-	// 	console.log("path is "+path1)
-	// 	return path1
-	// }
 	console.log(editor.document.uri)
     console.log(editor.document.uri.fsPath) //it gives c:\Users\Dhinesh\Desktop\repos\fetquest-genai\pages\2_Chatbot.py
 
@@ -99,35 +111,50 @@ function getActiveFilePath(): string | null {
 	path = wsuri!.uri.fsPath
 	uri = vscode.Uri.file(path)
 	//vscode.workspace.fs.readDirectory(uri)
+	//***********************Commenting out to test ************************* */
 	gitDirExits =  readDirectory(uri)
-	console.log("verifying"+ typeof gitDirExits)
+ 	console.log("verifying"+ typeof gitDirExits)
+
+	//***********************Commenting out to test ************************* */
 	
-	child_process.exec(`git  -C ${path} branch -a`, (error, stdout, stderr) => { 
-		if(error){
-			console.log("This is error")
+	async function cp_process(path:string){
+
+		const br : string[] = await childprocess_branch(path);
+
+		return br
+	
+	}
+
+	async function select_branch(avail_branch : string[]){
+
+			const selected_branch = await showQuickPick(avail_branch)
+
+			return selected_branch
+
 		}
-		console.log(`stdout: ${stdout}`);
-  		console.error(`stderr: ${stderr}`);
-	})
+
+	cp_process(path).then(br => {
+	
+		// console.log("INSIDE THEN");
+
+		// console.log("this is branches return", br);
+
+		const new_brnc = br.map( bl => bl.trim()).filter(Boolean);
+
+		select_branch(new_brnc).then(sel_br => {
+			console.log("the selected branch is....")
+			 console.log(sel_br)
+			
+			})
+
+		// console.log(typeof br)
+
+		// console.log("this is  new branches return", new_brnc);
+
+    });
 
 	
 
-	// console.log(typeof wsuri?.uri.fsPath) //gives string
-	// console.log("************************")
-	// console.log(wsuri!.uri) //object
-	// console.log("************************")
-	// const new_uri : vscode.Uri =  wsuri!.uri 
-	// const filesRead = vscode.workspace.fs.readDirectory(editor.document.uri)
-	// const rootPath_new = vscode.workspace.rootPath
-	// let uri : vscode.Uri = vscode.Uri.file(rootPath_new);
-	// const filesRead1 = vscode.workspace.fs.readDirectory(uri1)
-	// console.log(filesRead1)
-
-	// const gitDirExits = vscode.FileSystemError.FileExists(wsuri?.uri)
-	// console.log(gitDirExits.toString())
-	// //console.log(editor.document.uri.fsPath+'/.git')
-	// console.log(vscode.FileSystemError.FileExists(gitDirExits.name))
-	// console.log("test new")
 	return editor.document.uri.fsPath
 }
 
@@ -152,4 +179,67 @@ async function readDirectory(folderPath: vscode.Uri) {
   } catch (err) {
     console.error('Error reading directory:', err);
   }
+}
+
+
+
+function childprocess_branch(path: any) :Promise<any> {
+	return new Promise((resolve, reject) => {
+	let br : string [] = []
+		child_process.exec(`git  -C ${path} branch -a`, (error, stdout, stderr) => { 
+
+		if(error){
+			console.log("This is error")
+			reject(error);
+			return
+		}
+
+		if(stdout) {
+		//console.log(`stdout: ${stdout}`);
+
+		const tesp = stdout.toString().split(" ")
+
+		//const new_br = tesp.forEach(myFunction)
+
+	    tesp.map( item => {
+			if(item.includes("/") && !item.includes("HEAD")){
+          
+				 if(item.startsWith("origin")){
+
+                    br.push(item.slice(7))
+				 } else {
+					br.push(item.slice(15))
+				 }
+		     }
+	
+	      }
+		)
+		}
+
+		resolve(br)
+
+	})
+
+	
+})
+}
+
+
+async function showQuickPick(avail_branch : string []){
+	console.log("inside the quick pick function")
+	let i = 0;
+	//const result = await window.showQuickPick(['one', 'two', 'three'], {
+	const result = await window.showQuickPick(avail_branch, {
+		placeHolder: 'Select the target branch to check the latest change',
+		//onDidSelectItem: item => window.showInformationMessage(`Focus ${++i}: ${item}`)
+	});
+
+	if(result){
+		window.showInformationMessage(`Got: ${result}`);
+	} else {
+		window.showInformationMessage(`No Branch Selected, Operation Cancelled`);
+	}
+
+	return result
+
 }

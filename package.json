@@ -35,6 +35,16 @@
         "command": "fetquest.gitDiffPath",
         "category": "fetquest",
         "title": "Folder Path"
+      },
+      {
+        "command": "fetquest.quickpik",
+        "category": "fetquest",
+        "title": "Quick Pick"
+      },
+      {
+        "command": "fetquest.picktest",
+        "category": "fetquest",
+        "title": "Pick Test"
       }
     ]
   },
